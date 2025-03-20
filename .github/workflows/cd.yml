@@ -1,0 +1,41 @@
+name: Deploy via CodeDeploy
+
+on:
+  push:
+    branches:
+      - main # main 브랜치에 푸시 시 실행
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. 저장소 체크아웃
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # 2. 배포 패키지(zip) 생성: appspec.yml과 scripts 폴더를 압축
+      - name: Zip deployment package
+        run: |
+          zip -r deployment-app-package.zip deployment/appspec.yml deployment/scripts/
+
+      # 3. S3에 배포 패키지 업로드
+      - name: Upload deployment package to S3
+        run: |
+          aws s3 cp deployment-app-package.zip s3://docker-image-storage-bucket/deployment-app-package.zip
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: "ap-northeast-2"
+
+      # 4. CodeDeploy 배포 트리거
+      - name: Trigger CodeDeploy deployment
+        run: |
+          aws deploy create-deployment \
+            --application-name DockerCodeDeployApp \
+            --deployment-group-name DockerDeploymentAppGroup \
+            --s3-location bucket=docker-image-storage-bucket,key=deployment-app-package.zip,bundleType=zip
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: "ap-northeast-2"
