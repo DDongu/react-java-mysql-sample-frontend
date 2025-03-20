@@ -1,9 +1,10 @@
 name: Deploy via CodeDeploy
 
 on:
-  push:
-    branches:
-      - main # main 브랜치에 푸시 시 실행
+  workflow_run:
+    workflows: ["Build & Push Docker Image"] # CI 완료 후 실행
+    types:
+      - completed
 
 jobs:
   deploy:
