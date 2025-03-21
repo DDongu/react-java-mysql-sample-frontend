@@ -7,12 +7,12 @@ files:
 hooks:
   BeforeInstall:
     - location: scripts/stop_old_containers.sh
-      timeout: 100
+      timeout: 300
       runas: ec2-user
       log: /var/log/codedeploy/before_install.log
 
   AfterInstall:
     - location: scripts/start_new_containers.sh
-      timeout: 100
+      timeout: 300
       runas: ec2-user
       log: /var/log/codedeploy/after_install.log
