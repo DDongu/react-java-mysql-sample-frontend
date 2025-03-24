@@ -3,5 +3,5 @@
 docker pull ddongu/my-react-app:latest
 
 # 새로운 컨테이너 2개 실행 (포트 3000, 3001)
-docker run --env-file .env -d -p 3000:3000 --name my-react-app ddongu/my-react-app:latest
+docker run --env-file ~/app/.env -d -p 3000:3000 --name my-react-app ddongu/my-react-app:latest
 # docker run -d -p 3000:3000 --name my-react-app-2 my-docker-hub-username/my-react-app:latest
