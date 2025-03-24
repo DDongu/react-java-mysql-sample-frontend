@@ -1,38 +1,20 @@
-# syntax=docker/dockerfile:1.4
+# pull official base image
+FROM node:13.12.0-alpine
 
-FROM --platform=$BUILDPLATFORM node:lts AS development
+# set working directory
+WORKDIR /app
 
-WORKDIR /code
-COPY package.json /code/package.json
-COPY package-lock.json /code/package-lock.json
+# add `/app/node_modules/.bin` to $PATH
+ENV PATH /app/node_modules/.bin:$PATH
 
-RUN npm ci
-COPY . /code
+# install app dependencies
+COPY package.json ./
+COPY package-lock.json ./
+RUN npm install --silent
+RUN npm install react-scripts@3.4.1 -g --silent
 
-ENV CI=true
-ENV PORT=3000
+# add app
+COPY . ./
 
-CMD [ "npm", "start" ]
-
-FROM development AS dev-envs
-RUN <<EOF
-apt-get update
-apt-get install -y git
-EOF
-
-RUN <<EOF
-useradd -s /bin/bash -m vscode
-groupadd docker
-usermod -aG docker vscode
-EOF
-# install Docker tools (cli, buildx, compose)
-COPY --from=gloursdocker/docker / /
-CMD [ "npm", "start" ]
-
-FROM development AS build
-
-RUN ["npm", "run", "build"]
-
-FROM nginx:1.13-alpine
-
-COPY --from=build /code/build /usr/share/nginx/html
+# start app
+CMD ["npm", "start"]
